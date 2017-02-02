@@ -11,6 +11,7 @@ pub struct Request {
     // TODO: use a small vec to avoid this unconditional allocation
     headers: Vec<(Slice, Slice)>,
     data: EasyBuf,
+    body: EasyBuf,
 }
 
 type Slice = (usize, usize);
@@ -38,6 +39,10 @@ impl Request {
             headers: self.headers.iter(),
             req: self,
         }
+    }
+
+    pub fn body(&self) -> EasyBuf {
+      self.body.clone()
     }
 
     fn slice(&self, slice: &Slice) -> &[u8] {
@@ -89,6 +94,7 @@ pub fn decode(buf: &mut EasyBuf) -> io::Result<Option<Request>> {
         version: version,
         headers: headers,
         data: buf.drain_to(amt),
+        body: buf.clone(),
     }.into())
 }
 
