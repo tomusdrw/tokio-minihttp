@@ -88,13 +88,16 @@ pub fn decode(buf: &mut EasyBuf) -> io::Result<Option<Request>> {
          amt)
     };
 
+    let data = buf.drain_to(amt);
+    let len = buf.len();
+    let body = buf.drain_to(len);
     Ok(Request {
         method: method,
         path: path,
         version: version,
         headers: headers,
-        data: buf.drain_to(amt),
-        body: buf.clone(),
+        data: data,
+        body: body,
     }.into())
 }
 
