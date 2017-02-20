@@ -10,7 +10,7 @@ log = "0.3.6"
 net2 = "0.2"
 time = "0.1"
 tokio-core = "0.1.0"
-tokio-proto = { git = "https://github.com/tomusdrw/tokio-proto.git" }
+tokio-proto = { git = "https://github.com/tomusdrw/tokio-proto.git", revision = "f6ee08cb594fa2fc1b4178eaaca0855d66e68fd3" }
 tokio-service = "0.1"
 
 [dev-dependencies]
