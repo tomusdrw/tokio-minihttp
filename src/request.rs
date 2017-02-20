@@ -23,11 +23,11 @@ pub struct RequestHeaders<'req> {
 
 impl Request {
     pub fn method(&self) -> &str {
-        str::from_utf8(self.slice(&self.method)).unwrap()
+        str::from_utf8(self.slice(&self.method)).unwrap_or_default()
     }
 
     pub fn path(&self) -> &str {
-        str::from_utf8(self.slice(&self.path)).unwrap()
+        str::from_utf8(self.slice(&self.path)).unwrap_or_default()
     }
 
     pub fn version(&self) -> u8 {

@@ -3,6 +3,7 @@ use std::fmt::{self, Write};
 pub struct Response {
     headers: Vec<(String, String)>,
     response: String,
+    server: &'static str,
     status_message: StatusMessage,
 }
 
@@ -16,8 +17,14 @@ impl Response {
         Response {
             headers: Vec::new(),
             response: String::new(),
+            server: concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")),
             status_message: StatusMessage::Ok,
         }
+    }
+
+    pub fn server(&mut self, server: &'static str) -> &mut Response {
+        self.server = server;
+        self
     }
 
     pub fn status_code(&mut self, code: u32, message: &str) -> &mut Response {
@@ -42,10 +49,10 @@ pub fn encode(msg: Response, buf: &mut Vec<u8>) {
 
     write!(FastWrite(buf), "\
         HTTP/1.1 {}\r\n\
-        Server: Example\r\n\
+        Server: {}\r\n\
         Content-Length: {}\r\n\
         Date: {}\r\n\
-    ", msg.status_message, length, now).unwrap();
+    ", msg.status_message, msg.server, length, now).unwrap();
 
     for &(ref k, ref v) in &msg.headers {
         buf.extend_from_slice(k.as_bytes());
