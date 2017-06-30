@@ -27,7 +27,7 @@ impl Service for StatusService {
             _ => (404, "Not Found")
         };
 
-        println!("{:?}", ::std::str::from_utf8(&_request.body().as_slice()));
+        println!("{:?}", ::std::str::from_utf8(&_request.body()));
 
         let mut resp = Response::new();
         resp.status_code(code, message);

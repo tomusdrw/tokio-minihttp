@@ -1,5 +1,7 @@
 use std::fmt::{self, Write};
 
+use bytes::{BytesMut, BufMut};
+
 pub struct Response {
     headers: Vec<(String, String)>,
     response: String,
@@ -43,7 +45,7 @@ impl Response {
     }
 }
 
-pub fn encode(msg: Response, buf: &mut Vec<u8>) {
+pub fn encode(msg: Response, buf: &mut BytesMut) {
     let length = msg.response.len();
     let now = ::date::now();
 
@@ -55,14 +57,22 @@ pub fn encode(msg: Response, buf: &mut Vec<u8>) {
     ", msg.status_message, msg.server, length, now).unwrap();
 
     for &(ref k, ref v) in &msg.headers {
-        buf.extend_from_slice(k.as_bytes());
-        buf.extend_from_slice(b": ");
-        buf.extend_from_slice(v.as_bytes());
-        buf.extend_from_slice(b"\r\n");
+        push(buf, k.as_bytes());
+        push(buf, ": ".as_bytes());
+        push(buf, v.as_bytes());
+        push(buf, "\r\n".as_bytes());
     }
 
-    buf.extend_from_slice(b"\r\n");
-    buf.extend_from_slice(msg.response.as_bytes());
+    push(buf, "\r\n".as_bytes());
+    push(buf, msg.response.as_bytes());
+}
+
+fn push(buf: &mut BytesMut, data: &[u8]) {
+    buf.reserve(data.len());
+    unsafe {
+        buf.bytes_mut()[..data.len()].copy_from_slice(data);
+        buf.advance_mut(data.len());
+    }
 }
 
 // TODO: impl fmt::Write for Vec<u8>
@@ -70,11 +80,11 @@ pub fn encode(msg: Response, buf: &mut Vec<u8>) {
 // Right now `write!` on `Vec<u8>` goes through io::Write and is not super
 // speedy, so inline a less-crufty implementation here which doesn't go through
 // io::Error.
-struct FastWrite<'a>(&'a mut Vec<u8>);
+struct FastWrite<'a>(&'a mut BytesMut);
 
 impl<'a> fmt::Write for FastWrite<'a> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.0.extend_from_slice(s.as_bytes());
+        push(&mut *self.0, s.as_bytes());
         Ok(())
     }
 
